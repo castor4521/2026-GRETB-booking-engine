@@ -177,7 +177,7 @@
     /* Horizontal Session Details Row - Left to Right */
     .session-row {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(3, 1fr);
       gap: 1rem;
       margin-bottom: 1.5rem;
     }
@@ -1032,7 +1032,7 @@
         <form id="bookingForm">
           <div class="section-title">Session Details</div>
           
-          <!-- Horizontal Session Row: Institution → Venue → Event → Time -->
+          <!-- Horizontal Session Row: Institution → Venue → Date -->
           <div class="session-row">
             <div class="session-group active" id="institutionGroup">
               <label for="institution">Institution</label>
@@ -1050,12 +1050,6 @@
               <label for="event">Date</label>
               <select id="event" disabled required>
                 <option value="">Select date...</option>
-              </select>
-            </div>
-            <div class="session-group inactive" id="timeGroup">
-              <label for="time">Event Time</label>
-              <select id="time" disabled required>
-                <option value="">Select time...</option>
               </select>
             </div>
           </div>
@@ -1225,7 +1219,7 @@
     };
     
     // ----------------------------------------
-    // EASY TO UPDATE: Change venue, dates, and times here
+    // EASY TO UPDATE: Change venue and dates here
     // ----------------------------------------
     const BOOKING_DATA = {
       institutions: [
@@ -1240,11 +1234,7 @@
                 {
                   id: 'grad-2026',
                   name: 'May 14, 2026',
-                  date: '14th May 2026',
-                  times: [
-                    // Add or remove time slots as needed
-                    { id: '1300', label: '1:00 PM' }
-                  ]
+                  date: '14th May 2026'
                 }
               ]
             }
@@ -1343,7 +1333,6 @@
       institution: null,
       venue: null,
       event: null,
-      time: null,
       studentName: '',
       email: '',
       phone: ''
@@ -1354,7 +1343,6 @@
     const institutionSelect = document.getElementById('institution');
     const venueSelect = document.getElementById('venue');
     const eventSelect = document.getElementById('event');
-    const timeSelect = document.getElementById('time');
     const studentNameInput = document.getElementById('studentName');
     const emailInput = document.getElementById('email');
     const phoneInput = document.getElementById('phone');
@@ -1384,7 +1372,6 @@
       institutionSelect.addEventListener('change', onInstitutionChange);
       venueSelect.addEventListener('change', onVenueChange);
       eventSelect.addEventListener('change', onEventChange);
-      timeSelect.addEventListener('change', onTimeChange);
       
       studentNameInput.addEventListener('input', validateForm);
       emailInput.addEventListener('input', validateForm);
@@ -1403,16 +1390,15 @@
     // ============ SESSION PROGRESS ============
     function updateSessionProgress() {
       let progress = 0;
-      if (bookingData.institution) progress = 25;
-      if (bookingData.venue) progress = 50;
-      if (bookingData.event) progress = 75;
-      if (bookingData.time) progress = 100;
+      if (bookingData.institution) progress = 33;
+      if (bookingData.venue) progress = 66;
+      if (bookingData.event) progress = 100;
       
       sessionProgressBar.style.width = progress + '%';
 
       // Update group states
-      const groups = ['institutionGroup', 'venueGroup', 'eventGroup', 'timeGroup'];
-      const values = [bookingData.institution, bookingData.venue, bookingData.event, bookingData.time];
+      const groups = ['institutionGroup', 'venueGroup', 'eventGroup'];
+      const values = [bookingData.institution, bookingData.venue, bookingData.event];
       
       groups.forEach((groupId, i) => {
         const group = document.getElementById(groupId);
@@ -1428,7 +1414,7 @@
       });
 
       // Enable/disable details section
-      if (bookingData.time) {
+      if (bookingData.event) {
         detailsSection.classList.remove('inactive');
         studentNameInput.disabled = false;
         emailInput.disabled = false;
@@ -1449,11 +1435,9 @@
       // Reset downstream
       bookingData.venue = null;
       bookingData.event = null;
-      bookingData.time = null;
       
       venueSelect.innerHTML = '<option value="">Select venue...</option>';
       eventSelect.innerHTML = '<option value="">Select date...</option>';
-      timeSelect.innerHTML = '<option value="">Select time...</option>';
       
       if (bookingData.institution) {
         bookingData.institution.venues.forEach(v => {
@@ -1466,7 +1450,6 @@
       } else {
         venueSelect.disabled = true;
         eventSelect.disabled = true;
-        timeSelect.disabled = true;
       }
       
       updateSessionProgress();
@@ -1478,10 +1461,8 @@
       bookingData.venue = venueId ? bookingData.institution.venues.find(v => v.id === venueId) : null;
       
       bookingData.event = null;
-      bookingData.time = null;
       
       eventSelect.innerHTML = '<option value="">Select date...</option>';
-      timeSelect.innerHTML = '<option value="">Select time...</option>';
       
       if (bookingData.venue) {
         bookingData.venue.events.forEach(ev => {
@@ -1493,7 +1474,6 @@
         eventSelect.disabled = false;
       } else {
         eventSelect.disabled = true;
-        timeSelect.disabled = true;
       }
       
       updateSessionProgress();
@@ -1504,29 +1484,6 @@
       const eventId = e.target.value;
       bookingData.event = eventId ? bookingData.venue.events.find(ev => ev.id === eventId) : null;
       
-      bookingData.time = null;
-      timeSelect.innerHTML = '<option value="">Select time...</option>';
-      
-      if (bookingData.event) {
-        bookingData.event.times.forEach(t => {
-          const option = document.createElement('option');
-          option.value = t.id;
-          option.textContent = t.label;
-          timeSelect.appendChild(option);
-        });
-        timeSelect.disabled = false;
-      } else {
-        timeSelect.disabled = true;
-      }
-      
-      updateSessionProgress();
-      validateForm();
-    }
-
-    function onTimeChange(e) {
-      const timeId = e.target.value;
-      bookingData.time = timeId ? bookingData.event.times.find(t => t.id === timeId) : null;
-      
       updateSessionProgress();
       validateForm();
     }
@@ -1536,7 +1493,6 @@
         bookingData.institution &&
         bookingData.venue &&
         bookingData.event &&
-        bookingData.time &&
         studentNameInput.value.trim() &&
         emailInput.value.trim() &&
         phoneInput.value.trim();
@@ -1635,13 +1591,6 @@
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
           <strong>${bookingData.event.date}</strong>
-        </div>
-        <div class="summary-item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <polyline points="12 6 12 12 16 14"/>
-          </svg>
-          <strong>${bookingData.time.label}</strong>
         </div>
       `;
     }
@@ -1767,10 +1716,6 @@
             <span class="label">Date</span>
             <span class="value">${bookingData.event.date}</span>
           </div>
-          <div class="confirmation-row">
-            <span class="label">Event Time</span>
-            <span class="value">${bookingData.time.label}</span>
-          </div>
         </div>
         ${packageSection}
       `;
@@ -1796,8 +1741,7 @@
       const refId = [
         bookingData.studentName.replace(/\s+/g, '-'),
         bookingData.institution.id,
-        bookingData.event.id,
-        bookingData.time.id
+        bookingData.event.id
       ].join('_');
       params.set('client_reference_id', refId);
       
@@ -1870,7 +1814,6 @@
         institution: null,
         venue: null,
         event: null,
-        time: null,
         studentName: '',
         email: '',
         phone: ''
@@ -1881,10 +1824,8 @@
       bookingForm.reset();
       venueSelect.innerHTML = '<option value="">Select venue...</option>';
       eventSelect.innerHTML = '<option value="">Select date...</option>';
-      timeSelect.innerHTML = '<option value="">Select time...</option>';
       venueSelect.disabled = true;
       eventSelect.disabled = true;
-      timeSelect.disabled = true;
       
       studentNameInput.disabled = true;
       emailInput.disabled = true;
@@ -1897,8 +1838,8 @@
         card.classList.remove('selected');
       });
       
-      updateProgressBar();
-      showStep(1);
+      updateSessionProgress();
+      goToStep(1);
     }
 
     // Initialize
